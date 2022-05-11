@@ -1,6 +1,6 @@
 /*
 AirSane Imaging Daemon
-Copyright (C) 2018-2020 Simul Piscator
+Copyright (C) 2018-2022 Simul Piscator
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -26,20 +26,28 @@ class Scanner;
 
 class OptionsFile
 {
-    OptionsFile(const OptionsFile&) = delete;
-    OptionsFile& operator=(const OptionsFile&) = delete;
+  OptionsFile(const OptionsFile&) = delete;
+  OptionsFile& operator=(const OptionsFile&) = delete;
 
 public:
-    explicit OptionsFile(const std::string& fileName);
-    ~OptionsFile();
-
-    typedef std::vector<std::pair<std::string, std::string>> Options;
-    Options scannerOptions(const Scanner*) const;
+  explicit OptionsFile(const std::string& fileName);
+  ~OptionsFile();
+  std::string path() const;
+  
+  typedef std::vector<std::pair<std::string, std::string>> RawOptions;
+  struct Options
+  {
+    std::string icon, note;
+    double gray_gamma = 1.0, color_gamma = 1.0;
+    bool synthesize_gray = false;
+    RawOptions sane_options;
+  };
+  Options scannerOptions(const Scanner*) const;
 
 private:
-    std::string mFileName;
-    Options mGlobalOptions;
-    std::vector<std::pair<std::string, Options>> mDeviceOptions;
+  std::string mFileName;
+  RawOptions mGlobalOptions;
+  std::vector<std::pair<std::string, RawOptions>> mDeviceOptions;
 };
 
 #endif // OPTIONS_FILE_H

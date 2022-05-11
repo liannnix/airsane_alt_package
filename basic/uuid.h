@@ -1,6 +1,6 @@
 /*
 AirSane Imaging Daemon
-Copyright (C) 2018-2020 Simul Piscator
+Copyright (C) 2018-2022 Simul Piscator
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -19,36 +19,50 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #ifndef UUID_H
 #define UUID_H
 
-#include <string>
 #include <sstream>
+#include <string>
 
 class Uuid
 {
 public:
-    Uuid();
-    template<typename... Args> explicit Uuid(Args... args) { initFromString(makeString(args...)); }
+  Uuid();
+  template<typename... Args>
+  explicit Uuid(Args... args)
+  {
+    initFromString(makeString(args...));
+  }
+  static Uuid Random();
 
-    std::ostream& print(std::ostream&) const;
-    std::string toString() const;
+  std::ostream& print(std::ostream&) const;
+  std::string toString() const;
 
-    size_t size() const;
-    char* data();
-    const char* data() const;
+  size_t size() const;
+  char* data();
+  const char* data() const;
 
 private:
-    void initFromString(const std::string&);
-    static std::string makeString(const std::string& s) { return s; }
-    template<typename T> static std::string makeString(const T& t)
-        { std::ostringstream oss; oss << t; return oss.str(); }
-    template<typename T, typename... Args> static std::string makeString(const T& t, Args... args)
-        { return makeString(t) + makeString(args...); }
+  void initFromString(const std::string&);
+  static std::string makeString(const std::string& s) { return s; }
+  template<typename T>
+  static std::string makeString(const T& t)
+  {
+    std::ostringstream oss;
+    oss << t;
+    return oss.str();
+  }
+  template<typename T, typename... Args>
+  static std::string makeString(const T& t, Args... args)
+  {
+    return makeString(t) + makeString(args...);
+  }
 
-    char mData[16];
+  char mData[16];
 };
 
-inline std::ostream& operator<<(std::ostream& os, const Uuid& uuid)
+inline std::ostream&
+operator<<(std::ostream& os, const Uuid& uuid)
 {
-    return uuid.print(os);
+  return uuid.print(os);
 }
 
 #endif // UUID_H

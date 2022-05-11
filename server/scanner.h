@@ -1,6 +1,6 @@
 /*
 AirSane Imaging Daemon
-Copyright (C) 2018-2020 Simul Piscator
+Copyright (C) 2018-2022 Simul Piscator
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -20,77 +20,85 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define SCANNER_H
 
 #include <iostream>
-#include <string>
 #include <memory>
+#include <string>
 
-#include "sanecpp/sanecpp.h"
 #include "optionsfile.h"
+#include "sanecpp/sanecpp.h"
 
 class ScanJob;
 
 class Scanner
 {
-    Scanner(const Scanner&) = delete;
-    Scanner& operator=(const Scanner&) = delete;
+  Scanner(const Scanner&) = delete;
+  Scanner& operator=(const Scanner&) = delete;
 
 public:
-    explicit Scanner(const sanecpp::device_info&, bool randomUuid = false);
-    ~Scanner();
+  explicit Scanner(const sanecpp::device_info&);
+  ~Scanner();
+  bool initWithOptions(const OptionsFile&);
 
-    const char* error() const;
-    std::string statusString() const;
 
-    const std::string& uuid() const;
-    const std::string& uri() const;
-    const std::string& makeAndModel() const;
-    const std::string& saneName() const;
-    const std::string& stableUniqueName() const;
+  const char* error() const;
+  std::string statusString() const;
 
-    void setAdminUrl(const std::string&);
-    const std::string& adminUrl() const;
-    void setIconUrl(const std::string&);
-    const std::string& iconUrl() const;
-    const std::string& iconFile() const;
+  const std::string& uuid() const;
+  const std::string& makeAndModel() const;
+  const std::string& saneName() const;
+  const std::string& stableUniqueName() const;
 
-    const std::vector<std::string>& documentFormats() const;
-    const std::vector<std::string>& txtColorSpaces() const;
-    const std::vector<std::string>& colorModes() const;
-    const std::vector<std::string>& supportedIntents() const;
-    const std::vector<std::string>& inputSources() const;
+  void setPublishedName(const std::string&);
+  const std::string& publishedName() const;
 
-    int minResDpi() const;
-    int maxResDpi() const;
-    int maxWidthPx300dpi() const;
-    int maxHeightPx300dpi() const;
+  void setUri(const std::string&);
+  const std::string& uri() const;
+  void setAdminUrl(const std::string&);
+  const std::string& adminUrl() const;
+  void setIconUrl(const std::string&);
+  const std::string& iconUrl() const;
+  const std::string& iconFile() const;
+  const std::string& note() const;
+  
+  const std::vector<std::string>& documentFormats() const;
+  const std::vector<std::string>& txtColorSpaces() const;
+  const std::vector<std::string>& colorModes() const;
+  std::vector<std::string> platenSupportedIntents() const;
+  std::vector<std::string> adfSupportedIntents() const;
+  const std::vector<std::string>& inputSources() const;
 
-    bool hasPlaten() const;
-    bool hasAdf() const;
-    bool hasDuplexAdf() const;
+  int minResDpi() const;
+  int maxResDpi() const;
+  int maxWidthPx300dpi() const;
+  int maxHeightPx300dpi() const;
 
-    std::string platenSourceName() const;
-    std::string adfSourceName() const;
-    std::string grayScanModeName() const;
-    std::string colorScanModeName() const;
+  bool hasPlaten() const;
+  bool hasAdf() const;
+  bool hasDuplexAdf() const;
 
-    std::shared_ptr<ScanJob> createJobFromScanSettingsXml(const std::string&, bool autoselectFormat = false);
-    std::shared_ptr<ScanJob> getJob(const std::string& uuid);
-    bool cancelJob(const std::string&);
-    int purgeJobs(int maxAgeSeconds);
-    typedef std::vector<std::shared_ptr<ScanJob>> JobList;
-    JobList jobs() const;
-    void setTemporaryAdfStatus(SANE_Status);
+  std::string platenSourceName() const;
+  std::string adfSourceName() const;
+  std::string grayScanModeName() const;
+  std::string colorScanModeName() const;
 
-    std::shared_ptr<sanecpp::session> open();
-    bool isOpen() const;
+  std::shared_ptr<ScanJob> createJobFromScanSettingsXml(
+    const std::string&,
+    bool autoselectFormat = false);
+  std::shared_ptr<ScanJob> getJob(const std::string& uuid);
+  bool cancelJob(const std::string&);
+  int purgeJobs(int maxAgeSeconds);
+  typedef std::vector<std::shared_ptr<ScanJob>> JobList;
+  JobList jobs() const;
+  void setTemporaryAdfStatus(SANE_Status);
 
-    void setDeviceOptions(const OptionsFile::Options&);
+  std::shared_ptr<sanecpp::session> open();
+  bool isOpen() const;
 
-    void writeScannerCapabilitiesXml(std::ostream&) const;
-    void writeScannerStatusXml(std::ostream&) const;
+  void writeScannerCapabilitiesXml(std::ostream&) const;
+  void writeScannerStatusXml(std::ostream&) const;
 
 private:
-    struct Private;
-    Private* p;
+  struct Private;
+  Private* p;
 };
 
 #endif // SCANNER_H

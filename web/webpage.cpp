@@ -1,6 +1,6 @@
 /*
 AirSane Imaging Daemon
-Copyright (C) 2018-2020 Simul Piscator
+Copyright (C) 2018-2022 Simul Piscator
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -17,155 +17,209 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 #include "webpage.h"
-#include <sstream>
 #include <locale>
+#include <sstream>
 
-std::string WebPage::htmlEscape(const std::string& s)
+std::string
+WebPage::htmlEscape(const std::string& s)
 {
-    std::string r;
-    for(auto c : s) switch(c) {
-    case '&': r += "&amp;"; break;
-    case '<': r += "&lt;"; break;
-    case '>': r += "&gt;"; break;
-    case '\'': r += "&apos;"; break;
-    case '"': r += "&quot;"; break;
-    case '\n': r += "<br>\n"; break;
-    default: r += c;
+  std::string r;
+  for (auto c : s)
+    switch (c) {
+      case '&':
+        r += "&amp;";
+        break;
+      case '<':
+        r += "&lt;";
+        break;
+      case '>':
+        r += "&gt;";
+        break;
+      case '\'':
+        r += "&apos;";
+        break;
+      case '"':
+        r += "&quot;";
+        break;
+      case '\n':
+        r += "<br>\n";
+        break;
+      default:
+        r += c;
     }
-    return r;
+  return r;
 }
 
 static std::locale clocale("C");
 
-std::string WebPage::numtostr(double d)
+std::string
+WebPage::numtostr(double d)
 {
-    std::ostringstream oss;
-    oss.imbue(clocale);
-    oss << d;
-    return oss.str();
+  std::ostringstream oss;
+  oss.imbue(clocale);
+  oss << d;
+  return oss.str();
 }
 
 WebPage::WebPage()
- : mpResponse(nullptr), mpRequest(nullptr), mpOut(nullptr)
+  : mpResponse(nullptr)
+  , mpRequest(nullptr)
+  , mpOut(nullptr)
 {
-    addStyle("body { font-family:sans-serif }");
+  addStyle("body { font-family:sans-serif }");
 }
 
-WebPage &WebPage::clearStyle()
+WebPage&
+WebPage::setFavicon(const std::string& type, const std::string& url)
 {
-    mStyle.clear();
-    return *this;
+  mFaviconType = type;
+  mFaviconUrl = url;
+  return *this;
 }
 
-WebPage &WebPage::addStyle(const std::string &s)
+WebPage&
+WebPage::clearFavicon()
 {
-    mStyle += s + "\n";
-    return *this;
+  mFaviconType.clear();
+  mFaviconUrl.clear();
+  return *this;
 }
 
-WebPage& WebPage::render(const HttpServer::Request& request, HttpServer::Response& response)
+WebPage&
+WebPage::clearStyle()
 {
-    std::ostringstream oss;
-    mpOut = &oss;
-    mpRequest = &request;
-    mpResponse = &response;
-    onRender();
-    mpResponse = nullptr;
-    mpRequest = nullptr;
-    mpOut = nullptr;
-    if(!response.sent()){
-      std::string html =
-      "<!DOCTYPE HTML>\n"
-      "<html>\n"
-      "<head>\n"
-      "<meta charset='utf-8'/>\n"
-      "<title>" + htmlEscape(mTitle) + "</title>\n"
-      "<style>" + mStyle + "</style>\n"
-      "</head>\n"
-      "<body>\n";
-      html += oss.str();
-      html += "</body>\n</html>\n";
-      response.setStatus(HttpServer::HTTP_OK);
-      response.setHeader(HttpServer::HTTP_HEADER_CONTENT_TYPE, "text/html");
-      response.sendWithContent(html);
-    }
-    return *this;
+  mStyle.clear();
+  return *this;
 }
 
-WebPage::element &WebPage::element::setAttribute(const std::string &key, const std::string &value)
+WebPage&
+WebPage::addStyle(const std::string& s)
 {
-    mAttributes[key] = value;
-    return *this;
+  mStyle += s + "\n";
+  return *this;
 }
 
-std::string WebPage::element::toString() const
+WebPage&
+WebPage::render(const HttpServer::Request& request,
+                HttpServer::Response& response)
 {
-    std::string r = "<" + mTag;
-    for(auto& a : mAttributes)
-        r += " " + a.first + "='" + htmlEscape(a.second) + "'";
-    r += ">";
-    if(!mText.empty())
-       r += mText + "</" + mTag + ">";
-    return r;
+  std::ostringstream oss;
+  mpOut = &oss;
+  mpRequest = &request;
+  mpResponse = &response;
+  onRender();
+  mpResponse = nullptr;
+  mpRequest = nullptr;
+  mpOut = nullptr;
+  if (!response.sent()) {
+    std::string html = "<!DOCTYPE HTML>\n"
+                       "<html>\n"
+                       "<head>\n"
+                       "<meta charset='utf-8'/>\n"
+                       "<title>" +
+                       htmlEscape(mTitle) +
+                       "</title>\n"
+                       "<style>" +
+                       mStyle +
+                       "</style>\n";
+
+    if (!mFaviconType.empty() && !mFaviconUrl.empty())
+      html +=          "<link rel='icon' type='" + mFaviconType + "' href='" + mFaviconUrl + "'>\n";
+
+    html +=            "</head>\n"
+                       "<body>\n";
+    html += oss.str();
+    html += "</body>\n</html>\n";
+    response.setHeader(HttpServer::HTTP_HEADER_CONTENT_TYPE, "text/html");
+    response.sendWithContent(html);
+  }
+  return *this;
 }
 
-WebPage::list &WebPage::list::addItem(const std::string &s)
+WebPage::element&
+WebPage::element::setAttribute(const std::string& key, const std::string& value)
 {
-    addContent("<li>" + s + "</li>");
-    return *this;
+  mAttributes[key] = value;
+  return *this;
 }
 
-WebPage::list &WebPage::list::addItem(const WebPage::element& el)
+std::string
+WebPage::element::toString() const
 {
-    return addItem(el.toString());
+  std::string r = "<" + mTag;
+  for (auto& a : mAttributes)
+    r += " " + a.first + "='" + htmlEscape(a.second) + "'";
+  r += ">";
+  if (!mText.empty())
+    r += mText + "</" + mTag + ">";
+  return r;
 }
 
-WebPage::formSelect &WebPage::formSelect::addOption(const std::string &value, const std::string &text)
+WebPage::list&
+WebPage::list::addItem(const std::string& s)
 {
-    mOptions[value] = text.empty() ? value : text;
-    return *this;
+  addContent("<li>" + s + "</li>");
+  return *this;
 }
 
-WebPage::formSelect &WebPage::formSelect::addOptions(const std::vector<std::string> &options)
+WebPage::list&
+WebPage::list::addItem(const WebPage::element& el)
 {
-    for(auto& opt : options)
-        addOption(opt);
-    return *this;
+  return addItem(el.toString());
 }
 
-std::string WebPage::formSelect::toString() const
+WebPage::formSelect&
+WebPage::formSelect::addOption(const std::string& value,
+                               const std::string& text)
 {
-    std::string r = labelHtml();
-    r += "<select autocomplete='off'";
-    std::string value;
-    for(auto& a : attributes()) {
-        if(a.first == "value")
-            value = a.second;
-        else
-            r += " " + a.first + "='" + a.second + "'";
-    }
-    r += ">\n";
-    for(auto& opt : mOptions) {
-        r += "<option value='" + opt.first + "'";
-        if(opt.first == value)
-            r += " selected";
-        r += ">" + opt.second + "</option>\n";
-    }
-    r += "</select>\n";
-    return r;
+  mOptions[value] = text.empty() ? value : text;
+  return *this;
 }
 
-std::string WebPage::formField::toString() const
+WebPage::formSelect&
+WebPage::formSelect::addOptions(const std::vector<std::string>& options)
 {
-    return labelHtml() + element::toString();
+  for (auto& opt : options)
+    addOption(opt);
+  return *this;
 }
 
-std::string WebPage::formField::labelHtml() const
+std::string
+WebPage::formSelect::toString() const
 {
-    std::string r;
-    if(!mLabel.empty()) {
-        const std::string& label = mLabel == "*" ? attributes()["name"] : mLabel;
-        r += "<label for='" + attributes()["name"] + "'>" + label + "</label>\n";
-    }
-    return r;
+  std::string r = labelHtml();
+  r += "<select autocomplete='off'";
+  std::string value;
+  for (auto& a : attributes()) {
+    if (a.first == "value")
+      value = a.second;
+    else
+      r += " " + a.first + "='" + a.second + "'";
+  }
+  r += ">\n";
+  for (auto& opt : mOptions) {
+    r += "<option value='" + opt.first + "'";
+    if (opt.first == value)
+      r += " selected";
+    r += ">" + opt.second + "</option>\n";
+  }
+  r += "</select>\n";
+  return r;
+}
+
+std::string
+WebPage::formField::toString() const
+{
+  return labelHtml() + element::toString();
+}
+
+std::string
+WebPage::formField::labelHtml() const
+{
+  std::string r;
+  if (!mLabel.empty()) {
+    const std::string& label = mLabel == "*" ? attributes()["name"] : mLabel;
+    r += "<label for='" + attributes()["name"] + "'>" + label + "</label>\n";
+  }
+  return r;
 }

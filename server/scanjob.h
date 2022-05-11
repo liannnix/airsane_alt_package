@@ -1,6 +1,6 @@
 /*
 AirSane Imaging Daemon
-Copyright (C) 2018-2020 Simul Piscator
+Copyright (C) 2018-2022 Simul Piscator
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -21,57 +21,63 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include <string>
 
-#include "sanecpp/sanecpp.h"
 #include "optionsfile.h"
+#include "sanecpp/sanecpp.h"
 
 class Scanner;
 
 class ScanJob
 {
-    ScanJob(const ScanJob&) = delete;
-    ScanJob& operator=(const ScanJob&) = delete;
+  ScanJob(const ScanJob&) = delete;
+  ScanJob& operator=(const ScanJob&) = delete;
 
 public:
-    ScanJob(Scanner*, const std::string& uuid);
-    ~ScanJob();
+  ScanJob(Scanner*, const std::string& uuid);
+  ~ScanJob();
 
-    ScanJob& initWithScanSettingsXml(const std::string&, bool autoselectFormat = false);
-    ScanJob& applyDeviceOptions(const OptionsFile::Options&);
+  ScanJob& initWithScanSettingsXml(const std::string&,
+                                   bool autoselectFormat,
+                                   const OptionsFile::Options&);
 
-    int ageSeconds() const;
-    int imagesToTransfer() const;
-    int imagesCompleted() const;
-    std::string uri() const;
-    const std::string& uuid() const;
-    const std::string& documentFormat() const;
+  enum { single, adfSingle, adfBatch };
+  int kind() const;
 
-    bool beginTransfer();
-    ScanJob& finishTransfer(std::ostream&);
-    ScanJob& abortTransfer();
-    ScanJob& cancel();
+  int ageSeconds() const;
+  int imagesToTransfer() const;
+  int imagesCompleted() const;
+  std::string uri() const;
+  const std::string& uuid() const;
+  const std::string& documentFormat() const;
 
-    typedef enum {
-        aborted, canceled,
-        completed, pending,
-        processing
-    } State;
-    State state() const;
+  bool beginTransfer();
+  ScanJob& finishTransfer(std::ostream&);
+  ScanJob& cancel();
 
-    std::string statusString() const;
-    std::string statusReason() const;
+  typedef enum
+  {
+    aborted,
+    canceled,
+    completed,
+    pending,
+    processing
+  } State;
+  State state() const;
 
-    bool isPending() const;
-    bool isProcessing() const;
-    bool isFinished() const;
-    bool isAborted() const;
+  std::string statusString() const;
+  std::string statusReason() const;
 
-    SANE_Status adfStatus() const;
+  bool isPending() const;
+  bool isProcessing() const;
+  bool isFinished() const;
+  bool isAborted() const;
 
-    void writeJobInfoXml(std::ostream&) const;
+  SANE_Status adfStatus() const;
+
+  void writeJobInfoXml(std::ostream&) const;
 
 private:
-    struct Private;
-    Private* p;
+  struct Private;
+  Private* p;
 };
 
 #endif // SCANJOB_H

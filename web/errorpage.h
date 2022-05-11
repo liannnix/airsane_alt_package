@@ -1,6 +1,6 @@
 /*
 AirSane Imaging Daemon
-Copyright (C) 2018-2020 Simul Piscator
+Copyright (C) 2018-2022 Simul Piscator
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -24,13 +24,13 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 class ErrorPage : public WebPage
 {
 public:
-    explicit ErrorPage(int errorCode);
+  explicit ErrorPage(int errorCode);
 
 protected:
-    void onRender() override;
+  void onRender() override;
 
 private:
-    int mErrorCode;
+  int mErrorCode;
 };
 
 #endif // ERRORPAGE_H

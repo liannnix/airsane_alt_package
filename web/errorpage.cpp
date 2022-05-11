@@ -1,6 +1,6 @@
 /*
 AirSane Imaging Daemon
-Copyright (C) 2018-2020 Simul Piscator
+Copyright (C) 2018-2022 Simul Piscator
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -21,18 +21,19 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <sstream>
 
 ErrorPage::ErrorPage(int errorCode)
-: mErrorCode(errorCode)
+  : mErrorCode(errorCode)
 {
-    std::ostringstream oss;
-    oss << "Error " << errorCode << ": " << HttpServer::statusReason(errorCode);
-    setTitle(oss.str());
+  std::ostringstream oss;
+  oss << "Error " << errorCode << ": " << HttpServer::statusReason(errorCode);
+  setTitle(oss.str());
 }
 
-void ErrorPage::onRender()
+void
+ErrorPage::onRender()
 {
-    std::ostringstream oss;
-    oss << request();
-    out() << heading(1).addText(title()) << std::endl
-          << paragraph().addText("when processing request: ") << std::endl
-          << paragraph().addText(oss.str());
+  std::ostringstream oss;
+  oss << request();
+  out() << heading(1).addText(title()) << std::endl
+        << paragraph().addText("when processing request: ") << std::endl
+        << paragraph().addText(oss.str());
 }

@@ -1,6 +1,6 @@
 /*
 AirSane Imaging Daemon
-Copyright (C) 2018-2020 Simul Piscator
+Copyright (C) 2018-2022 Simul Piscator
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -16,17 +16,18 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#include "server.h"
 #include "web/webpage.h"
-#include "scanserver.h"
 
 class MainPage : public WebPage
 {
 public:
-    explicit MainPage(const ScannerList&);
+  explicit MainPage(const ScannerList&, bool resetoption, bool discloseversion);
 
 protected:
-    void onRender() override;
+  void onRender() override;
 
 private:
-    const ScannerList& mScanners;
+  const ScannerList& mScanners;
+  bool mResetoption, mDiscloseversion;
 };

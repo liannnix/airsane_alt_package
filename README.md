@@ -4,26 +4,30 @@
 
 A SANE WebScan frontend that supports Apple's AirScan protocol.
 Scanners are detected automatically, and published through mDNS.
-Though images may be acquired and transferred
-in JPEG, PNG, and PDF/raster format through a simple web interface,
+Acquired images may be transferred 
+in JPEG, PNG, and [PDF/raster](https://www.pdfraster.org/) format.
+
 AirSane's intended purpose is to be used with AirScan/eSCL clients such as
-Apple's Image Capture.
+Apple's Image Capture, but a simple web interface is provided as well.
 
 Images are encoded on-the-fly during acquisition, keeping memory/storage
 demands low. Thus, AirSane will run fine on a Raspberry Pi or similar device.
 
-Authentication and secure communication are not supported.
+Authentication and secure communication are supported in conjunction with a
+proxy server such as nginx (see the [https readme file](README.https.md)).
 
 If you are looking for a powerful SANE web frontend, AirSane may not be for you.
 You may be interested in [phpSANE](https://sourceforge.net/projects/phpsane) instead.
 
 AirSane has been developed by reverse-engineering the communication protocol
 implemented in Apple's AirScanScanner client
-(macos 10.12.6, `/System/Library/Image Capture/Devices/AirScanScanner.app`), using a 
-[Disassembler](https://www.hopperapp.com/) able to reconstruct much of the original 
-Objective-C source code.
+(macos 10.12.6, `/System/Library/Image Capture/Devices/AirScanScanner.app`).
 
-Regarding the mdns announcement, and the basic working of the eSCL protocol, [David Poole's blog](http://testcluster.blogspot.com/2014/03) was very helpful.
+Regarding the mdns announcement, and the basic working of the eSCL protocol,
+[David Poole's blog](http://testcluster.blogspot.com/2014/03) was very helpful.
+
+In the meantime, the eSCL protocol has been officially published
+[here](https://mopria.org/mopria-escl-specification).
 
 ## Usage
 ### Web interface
@@ -33,18 +37,28 @@ link from the main page.
 ### macOS
 When opening 'Image Capture', 'Preview', or other applications using the
 ImageKit framework, scanners exported by AirSane should be immediately available.
-In 'Printers and Scanners', exported scanners will be listed with a type of 
-'Bonjour Scanner'.
 
-If you defined a custom icon for your scanner (see below), note that you will
+In the 'Printers and Scanners' control panel, exported scanners will be listed with 
+a type of 'Bonjour Scanner'.
+
+If you define a custom icon for your scanner (see below), note that you will
 have to use the scanner through 'Image Capture' once before it will be
-shown with this icon in 'Printers and Scanners'. This seems to be a bug in macOS.
+shown with this icon in 'Printers and Scanners'. This seems to be a bug in macOS
+at least up to Catalina.
+
+### Windows 11
+Go to "Settings"->"Bluetooth & devices"->"Printers and Scanners."
+There, click "Add Device".
+AirSane devices will appear as devices to add, click "Add".
+Wait until the device appears in the list of devices below, click the device,
+and choose "Install app" or "Open scanner" in order to install the Microsoft
+scanner app, or open it if has been installed before.
+Note that Windows 11 does not allow more than 4 scanners per AirSane instance.
 
 ### Mopria client on Android
-As of version 1.3.7, the Mopria Scan App will display all AirSane scanners and
+As of version 1.4.10, the Mopria Scan App will detect all AirSane scanners and
 display them with name and icon. After choosing scan options, you will be able
-to scan to your android device. Note that the Mopria Scan App will only detect
-scanners that have an icon defined in `/etc/airsane/options.conf` (see below).
+to scan to your android device.
 
 ## Installation
 ### Packages for Synology NAS
@@ -55,12 +69,17 @@ Pre-built packages for Synology are available here:
 Build files and instructions for OpenWRT have been published here:
 <https://github.com/tbaela/AirSane-openwrt>
 
+### Build on macOS
+AirSane may be run on a macOS installation in order to serve locally attached
+scanners to eSCL clients such as Apple Image Capture. For instructions, see 
+[the macOS README file](README.macOS.md).
+
 ### Build and install from source on Debian/Ubuntu/Raspbian
 #### Build
 ```
-sudo apt install libsane-dev libjpeg-dev libpng-dev
-sudo apt install libavahi-client-dev libusb-1.*-dev
-sudo apt install git cmake g++
+sudo apt-get install libsane-dev libjpeg-dev libpng-dev
+sudo apt-get install libavahi-client-dev libusb-1.*-dev
+sudo apt-get install git cmake g++
 git clone https://github.com/SimulPiscator/AirSane.git
 mkdir AirSane-build && cd AirSane-build
 cmake ../AirSane
@@ -72,7 +91,7 @@ The provided systemd service file assumes that user and group
 Installing the sane-utils package is a convenient way to set up a user 'saned'
 with proper permissions:
 ```
-sudo apt install sane-utils
+sudo apt-get install sane-utils
 ```
 Make sure that ```sudo scanimage -L``` lists all scanners attached to your machine.
 Listing scanners as user 'saned' should show all scanners as well:
@@ -83,15 +102,16 @@ If all scanners are listed for 'root' but none for 'saned,' you might have hit
 a [bug in libsane](https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=918358).
 As a workaround, create a file ```/etc/udev/rules.d/65-libsane.rules``` with this content:
 ```
-ENV{libsane_matched}=="yes", RUN+="/bin/setfacl -m g:scanner:rw $env{DEVNAME}"
+ENV{libsane_matched}=="yes", RUN+="/usr/bin/setfacl -m g:scanner:rw $env{DEVNAME}"
 ```
+Double-check the location of the `setfacl` binary using `which setfacl`, adapt the line if necessary.
 Unplug and re-plug all scanners. ```sudo -u saned scanimage -L``` should now list all
 of them.
 
 To install AirSane:
 ```
-sudo apt install avahi-daemon
-sudo make install
+sudo apt-get install avahi-daemon
+make && sudo make install
 sudo systemctl enable airsaned
 sudo systemctl start airsaned
 sudo systemctl status airsaned
@@ -109,7 +129,10 @@ by editing '/etc/default/airsane'. For options, and their meanings, run
 ```
 airsaned --help
 ```
-By default, the server listens on all local addresses, and port 8090.
+By default, the server listens on all local addresses, and on a range of ports beginning at 8090.
+From there, each exported scanner has its own port (this is necessary to match the mdns-sd
+specification which allows only a single service to be announced per address/port combination).
+
 To verify http access, open `http://localhost:8090/` in a web browser.
 From there, follow a link to a scanner page, and click the 'update preview'
 button for a preview scan.
@@ -149,9 +172,17 @@ using weights as suited for sRGB data:
 This is useful for backends that do not allow true grayscale scanning or incorrectly return a single color component even if
 true gray is requested ([observed](https://gitlab.com/sane-project/backends/-/issues/308) with the SANE genesys backend).
 #### icon
-Full path to a png file that should be used as the scanner's icon. The image should have a size of 512x512, 256x256 or 
-128x128 pixels and an alpha channel for transparency. If pixel dimensions are not powers of two, the image will not be
-accepted by macOS.
+Name of a png file that should be used as the scanner's icon.
+This may be an absolute path, or a relative path.
+If relative (e.g., just a file name without a path), it is relative to the 
+location of the options file.
+
+The image should have a size of 512x512, 256x256 or 128x128 pixels and an alpha channel for transparency.
+If pixel dimensions are not powers of two, the image will not be accepted by macOS.
+#### location
+A string that appears in the `note` field of the mDNS announcement. This should be an indication where the scanner is located,
+such as "Living Room" or "Office." If no location is given in the options file, this defaults to the host name of the machine
+that runs airsaned.
 
 ### Example
 ```
@@ -159,7 +190,7 @@ accepted by macOS.
 # Set SANE brightness to 10 for all scanners
 brightness 10
 # Set a default icon for all scanners
-icon /etc/airsane/Gnome-scanner.png
+icon Gnome-scanner.png
 
 # Compensate for OS-side gamma correction with gamma = 1.8 = 1/0.555555
 gray-gamma 0.555555
@@ -171,14 +202,12 @@ synthesize-gray yes
 
 # Set icon and calibration file option for a scanner "Canon LiDE 60"
 device Canon LiDE 60
-icon /etc/airsane/CanonLiDE60.png
+icon CanonLiDE60.png
+location Living Room
 calibration-file /home/simul/some path with spaces/canon-lide-60.cal
 ```
 
 ## Color Management (Gamma Correction)
-
-Although not stated explicitly, it seems that SANE backends try to perform color and gamma correction such as
-to return image data in a linear color space.
 
 When receiving scan data from an AirScan scanner, macOS seems to ignore all color space related information from the
 transmitted image files, and interprets color and gray levels according to standard scanner color profiles.
@@ -187,12 +216,24 @@ Using ColorSync Utility, one can see that these color profiles are called `Scann
 Unfortunately, it is not possible to permanently assign a different color profile to an AirScan scanner using 
 ColorSync Utility: the specified color profile is not used, and the profile setting is reverted to the original standard profile.
 
-The macOS standard profiles assume a gamma value of 1.8, which does not match the linear data coming from SANE.
-As a result, scanned images appear darker than the original, with fewer details in darker areas.
+The SANE standard does not prescribe a certain gamma of backend output.
+
+The macOS standard profiles assume a gamma value of 1.8, which does not necessarily match the data coming from the SANE backend.
+As a result, scanned images may appear darker than the original, with fewer details in darker areas, or brighter, with fewer
+details in brighter areas.
 
 Using the gamma options of AirSane, you will be able to neutralize the gamma value of 1.8 in the macOS scanner profile.
 Apply the inverse of 1.8 as a `gray-gamma` and `color-gamma` value in your AirSane configuration file, as shown in the example 
-above.
+above. By multiplying with another factor between 0.45 and 2.2, you can correct for the gamma value returned from the SANE backend.
+
+## Ignore List
+
+If a file exists at the location for the ignore list (by default, `/etc/airsane/ignorelist.conf`), AirSane will read that file line
+by line, treat each line as a regular expression to be matched against a device's SANE name, and will ignore any device that
+matches.
+
+The original purpose of the ignore list is to avoid loops with backends that auto-detect eSCL devices, but it may be used to suppress
+any device from AirSane's list of published devices.
 
 ## Troubleshoot
 
@@ -201,13 +242,6 @@ You have libpng installed in an old version. Some distributions provide libpng12
 Installing libpng16-dev should fix the issue:
 ```
    sudo apt install libpng16-dev
-```
-* Compiling fails because of **`#include <libpng/png.h>`** not being found. 
-On some distributions (e.g., Arch Linux), `libpng` may come in multiple flavors, with each having its
-own `/usr/include` subdirectory. 
-Creating a symlink will then fix the build:
-```
-  sudo ln -s /usr/include/libpng16/ /usr/include/libpng/
 ```
 * If you are able to open the server's web page locally, but **not from a remote
 machine,** you may have to allow access to port 8090 in your iptables
@@ -222,4 +256,26 @@ airsaned as user saned vs running as root:
   sudo systemctl stop airsaned
   sudo -u saned airsaned --debug=true --access-log=-
   sudo airsaned --debug=true --access-log=-
+```
+
+* Scan appears **too dark** or **too bright**. See notes about color management (gamma correction)
+above. Start out with the suggested factor of 0.55. Try settings between 0.45 and 2.2 until scan
+quality appears good.
+
+* A **dark vertical stripe** appears in the middle of the scan when using a Canon scanner ("genesys" backend).
+This is a known [bug in the genesys backend](https://bugs.launchpad.net/ubuntu/+source/sane-backends/+bug/1731459),
+present in libsane versions 1.0.26 and 1.0.27. The solution is to remove the libsane package, and install
+SANE from source.
+   
+* Apple Image Capture fails to connect to the scanner (shows an **"error 21345"**).
+Enable IPv6 in your local network, and on the machine running AirSane.
+After rebooting the machine running AirSane, you will be able to scan from Apple Image Capture.
+
+* Scanners are not advertised, and in the debug log, you seen an avahi error **"Bad State (-2)"**.
+Most likely, the avahi-daemon package is not installed, or avahi-daemon is not running/enabled:
+```
+  sudo install avahi-daemon
+  sudo systemctl enable avahi-daemon
+  sudo systemctl start avahi-damon
+
 ```
