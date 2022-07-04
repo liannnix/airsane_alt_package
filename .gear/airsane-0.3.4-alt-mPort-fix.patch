@@ -1,0 +1,14 @@
+diff --git a/zeroconf/mdnspublisher.h b/zeroconf/mdnspublisher.h
+index bac2ca1..8220995 100644
+--- a/zeroconf/mdnspublisher.h
++++ b/zeroconf/mdnspublisher.h
+@@ -45,8 +45,8 @@ public:
+   public:
+     explicit Service(MdnsPublisher* p)
+       : mpPublisher(p)
+-      , mPort(0)
+       , mIfIndex(-1)
++      , mPort(0)
+     {}
+     ~Service() { unannounce(); }
+ 

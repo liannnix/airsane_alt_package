@@ -15,6 +15,7 @@ Url: https://github.com/SimulPiscator/AirSane.git
 Source: %name-%version.tar
 
 Patch1: %name-0.3.4-alt-strerror-fix.patch
+Patch2: %name-0.3.4-alt-mPort-fix.patch
 
 BuildRequires: ccmake
 BuildRequires: gcc-c++
@@ -45,6 +46,7 @@ for you. You may be interested in phpSANE instead.
 %setup
 
 %patch1 -p1
+%patch2 -p1
 
 # fix build with our libpng
 sed -i 's|libpng\/png\.h|png.h|' imageformats/pngencoder.cpp
