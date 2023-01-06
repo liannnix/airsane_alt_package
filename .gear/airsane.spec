@@ -8,7 +8,8 @@ License: GPLv3
 Group: Graphics
 
 Url: https://github.com/SimulPiscator/AirSane.git
-#Git: https://github.com/SimulPiscator/AirSane.git
+VCS: https://github.com/SimulPiscator/AirSane.git
+
 Source: %name-%version.tar
 
 Patch1: %name-0.3.4-alt-strerror-fix.patch
@@ -48,13 +49,13 @@ for you. You may be interested in phpSANE instead.
 %patch3 -p1
 
 # fix build with our libpng
-sed -i 's|libpng\/png\.h|png.h|' imageformats/pngencoder.cpp
+sed -i 's|libpng/png.h|png.h|' imageformats/pngencoder.cpp
 # change systemd unit-file settings
-sed -i 's|\/usr\/local\/bin\/airsaned|/usr/bin/airsaned|' systemd/airsaned.service
+sed -i 's|/usr/local/bin/airsaned|/usr/bin/airsaned|' systemd/airsaned.service
 sed -i 's|^Group=saned|Group=scanner|' systemd/airsaned.service
 sed -i 's|^User=saned|User=_saned|' systemd/airsaned.service
 #  look for an icon in a more suitable FS path
-sed -i 's|^icon \/etc\/airsane\/Gnome-scanner.png|icon %_iconsdir/hicolor/512x512/apps/Gnome-scanner.png|' etc/options.conf
+sed -i 's|^icon /etc/airsane/Gnome-scanner.png|icon %_iconsdir/hicolor/512x512/apps/Gnome-scanner.png|' etc/options.conf
 
 %build
 %cmake
