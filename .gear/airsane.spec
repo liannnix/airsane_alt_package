@@ -2,7 +2,7 @@
 
 Name: airsane
 Version: 0.3.4
-Release: alt1
+Release: alt2
 Summary: A SANE WebScan frontend that supports Apple's AirScan protocol.
 License: GPLv3
 Group: Graphics
@@ -82,6 +82,9 @@ mv %buildroot/%_sysconfdir/%name/*.png %buildroot/%_iconsdir/hicolor/512x512/app
 %_iconsdir/hicolor/512x512/apps/*.png
 
 %changelog
+* Mon Jul 10 2023 Artyom Bystrov <arbars@altlinux.org> 0.3.4-alt2
+- Fix build on GCC13
+
 * Mon Jul 4 2022 Vasiliy Kovalev <kovalev@altlinux.org> 0.3.4-alt1
 - Updated to 0.3.4
 - Add patches
