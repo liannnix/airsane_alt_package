@@ -1,0 +1,24 @@
+From 4d4c5854da3a32e9dbf801b692e85633ce5bbf97 Mon Sep 17 00:00:00 2001
+From: Artyom Bystrov <arbars@altlinux.org>
+Date: Mon, 10 Jul 2023 13:28:56 +0300
+Subject: [PATCH] Fix build on GCC13
+
+---
+ web/httpserver.h | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/web/httpserver.h b/web/httpserver.h
+index 991f112..2067919 100644
+--- a/web/httpserver.h
++++ b/web/httpserver.h
+@@ -22,6 +22,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ #include "basic/dictionary.h"
+ #include <iostream>
+ #include <string>
++#include <cstdint>
+ 
+ class HttpServer
+ {
+-- 
+2.33.8
+
