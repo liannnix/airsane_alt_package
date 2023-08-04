@@ -1,0 +1,101 @@
+From eb1b1ce55e8e3d5e87a41801259665e46531a664 Mon Sep 17 00:00:00 2001
+From: Vasiliy Kovalev <kovalev@altlinux.org>
+Date: Fri, 4 Aug 2023 14:01:46 +0300
+Subject: [PATCH 4/6] server: fix constructor init warning
+
+server/scanner.cpp:218:15: warning: 'Scanner::Priva
+te::mError' will be initialized after [-Wreorder]
+  218 |   const char* mError;
+      |               ^~~~~~
+
+server/scanner.cpp:216:15: warning:   'SANE_Status Scanner::Private::mTemporaryAdfStatus' [-Wreorder]
+  216 |   SANE_Status mTemporaryAdfStatus;
+      |               ^~~~~~~~~~~~~~~~~~~
+
+server/scanner.cpp:235:1: warning:   when initialized here [-Wreorder]
+  235 | Scanner::Private::Private(Scanner* p)
+      | ^~~~~~~
+
+server/server.h:63:5: warning: 'Server::mLocalonly' will be initialized after [-Wreorder]
+   63 |     mLocalonly, mHotplug, mRandompaths, mCompatiblepath, mAnnouncesecure;
+      |     ^~~~~~~~~~
+
+server/server.h:62:19: warning:   'bool Server::mWebinterface' [-Wreorder]
+   62 |   bool mAnnounce, mWebinterface, mResetoption, mDiscloseversion,
+      |                   ^~~~~~~~~~~~~
+
+server/server.cpp:80:1: warning:   when initialized here [-Wreorder]
+   80 | Server::Server(int argc, char** argv)
+      | ^~~~~~
+
+server/server.h:63:41: warning: 'Server::mCompatiblepath' will be initialized after [-Wreorder]
+   63 |     mLocalonly, mHotplug, mRandompaths, mCompatiblepath, mAnnouncesecure;
+      |                                         ^~~~~~~~~~~~~~~
+
+server/server.h:62:48: warning:   'bool Server::mDiscloseversion' [-Wreorder]
+   62 |   bool mAnnounce, mWebinterface, mResetoption, mDiscloseversion,
+      |                                                ^~~~~~~~~~~~~~~~
+
+server/server.cpp:80:1: warning:   when initialized here [-Wreorder]
+   80 | Server::Server(int argc, char** argv)
+      | ^~~~~~
+
+server/server.h:66:8: warning: 'Server::mDoRun' will be initialized after [-Wreorder]
+   66 |   bool mDoRun;
+      |        ^~~~~~
+
+server/server.h:65:9: warning:   'float Server::mStartupTimeSeconds' [-Wreorder]
+   65 |   float mStartupTimeSeconds;
+      |         ^~~~~~~~~~~~~~~~~~~
+
+server/server.cpp:80:1: warning:   when initialized here [-Wreorder]
+   80 | Server::Server(int argc, char** argv)
+      | ^~~~~~
+
+Signed-off-by: Vasiliy Kovalev <kovalev@altlinux.org>
+---
+ server/scanner.cpp | 2 +-
+ server/server.cpp  | 8 ++++----
+ 2 files changed, 5 insertions(+), 5 deletions(-)
+
+diff --git a/server/scanner.cpp b/server/scanner.cpp
+index 130afc6..085055b 100644
+--- a/server/scanner.cpp
++++ b/server/scanner.cpp
+@@ -237,8 +237,8 @@ Scanner::Private::Private(Scanner* p)
+   , mpPlaten(nullptr)
+   , mpAdf(nullptr)
+   , mDuplex(false)
+-  , mError(nullptr)
+   , mTemporaryAdfStatus(SANE_STATUS_GOOD)
++  , mError(nullptr)
+ {
+   sInstances.insert(this);
+ }
+diff --git a/server/server.cpp b/server/server.cpp
+index 9651a38..d23be7b 100644
+--- a/server/server.cpp
++++ b/server/server.cpp
+@@ -79,15 +79,15 @@ clientIsAirscan(const HttpServer::Request& req)
+ 
+ Server::Server(int argc, char** argv)
+   : mAnnounce(true)
+-  , mLocalonly(true)
+   , mWebinterface(true)
+   , mResetoption(false)
+-  , mRandompaths(false)
+-  , mCompatiblepath(false)
+   , mDiscloseversion(true)
++  , mLocalonly(true)
+   , mHotplug(true)
+-  , mDoRun(true)
++  , mRandompaths(false)
++  , mCompatiblepath(false)
+   , mStartupTimeSeconds(0)
++  , mDoRun(true)
+ {
+   std::string port, interface, unixsocket, accesslog, hotplug, announce,
+      webinterface, resetoption, discloseversion, localonly, optionsfile,
+-- 
+2.33.8
+

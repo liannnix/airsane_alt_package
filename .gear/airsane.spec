@@ -15,6 +15,7 @@ Source: %name-%version.tar
 Patch2: %name-0.3.4-alt-mPort-fix.patch
 Patch3: %name-0.3.4-alt-fix-GCC13-build.patch
 Patch4: %name-0.3.5-alt-web-fix-constructor-init-warning.patch
+Patch5: %name-0.3.5-alt-server-fix-constructor-init-warning.patch
 
 BuildRequires: ccmake
 BuildRequires: gcc-c++
