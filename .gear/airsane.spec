@@ -42,9 +42,7 @@ for you. You may be interested in phpSANE instead.
 
 %prep
 %setup
-
-%patch2 -p1
-%patch3 -p1
+%autopatch -p1
 
 # fix build with our libpng
 sed -i 's|libpng/png.h|png.h|' imageformats/pngencoder.cpp
