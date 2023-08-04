@@ -1,0 +1,42 @@
+From 07dea33b784c144c530ca0c1b122bce27a64adbb Mon Sep 17 00:00:00 2001
+From: Vasiliy Kovalev <kovalev@altlinux.org>
+Date: Fri, 4 Aug 2023 14:13:23 +0300
+Subject: [PATCH 5/6] server: fix types warning
+
+server/scanjob.cpp:356:23: warning: comparison of i
+nteger expressions of different signedness: 'int' and 'std::vector<char>::size_type'
+ {aka 'long unsigned int'} [-Wsign-compare]
+  356 |     for (int i = 0; i < ioData.size(); ++i)
+      |                     ~~^~~~~~~~~~~~~~~
+
+server/scanjob.cpp:359:23: warning: comparison of i
+nteger expressions of different signedness: 'int' and 'std::vector<char>::size_type'
+ {aka 'long unsigned int'} [-Wsign-compare]
+  359 |     for (int i = 0; i < ioData.size() / 2; ++i)
+      |                     ~~^~~~~~~~~~~~~~~~~~~
+
+Signed-off-by: Vasiliy Kovalev <kovalev@altlinux.org>
+---
+ server/scanjob.cpp | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/server/scanjob.cpp b/server/scanjob.cpp
+index a2c4df7..0b0a83a 100644
+--- a/server/scanjob.cpp
++++ b/server/scanjob.cpp
+@@ -353,10 +353,10 @@ ScanJob::Private::applyGamma(std::vector<char>& ioData)
+     uint16_t* s;
+   } data = { ioData.data() };
+   if (mGammaTable.size() == 1 << 8) {
+-    for (int i = 0; i < ioData.size(); ++i)
++    for (size_t i = 0; i < ioData.size(); ++i)
+       data.b[i] = mGammaTable[data.b[i]];
+   } else if (mGammaTable.size() == 1 << 16) {
+-    for (int i = 0; i < ioData.size() / 2; ++i)
++    for (size_t i = 0; i < ioData.size() / 2; ++i)
+       data.s[i] = mGammaTable[data.s[i]];
+   }
+ }
+-- 
+2.33.8
+
