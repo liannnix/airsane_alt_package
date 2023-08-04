@@ -1,0 +1,41 @@
+From 7d9b10ffd1b43eb306361f560992118e3d2f91c7 Mon Sep 17 00:00:00 2001
+From: Vasiliy Kovalev <kovalev@altlinux.org>
+Date: Fri, 4 Aug 2023 14:17:23 +0300
+Subject: [PATCH 6/6] server: fix 'defined but not used' warning
+
+server/scanjob.cpp:41:20: warning: 'PWG_JOB_SCANNING_AND_TRANSFERRING' defined but not used [-Wunused-variable]
+   41 | static const char* PWG_JOB_SCANNING_AND_TRANSFERRING =
+      |                    ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+server/scanjob.cpp:37:20: warning: 'PWG_SERVICE_OFF_LINE' defined but not used [-Wunused-variable]
+   37 | static const char* PWG_SERVICE_OFF_LINE = "ServiceOffLine";
+      |                    ^~~~~~~~~~~~~~~~~~~~
+
+Signed-off-by: Vasiliy Kovalev <kovalev@altlinux.org>
+---
+ server/scanjob.cpp | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
+
+diff --git a/server/scanjob.cpp b/server/scanjob.cpp
+index 0b0a83a..3d54071 100644
+--- a/server/scanjob.cpp
++++ b/server/scanjob.cpp
+@@ -34,12 +34,12 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ 
+ // pwg JobStateReasonsWKV
+ static const char* PWG_NONE = "None";
+-static const char* PWG_SERVICE_OFF_LINE = "ServiceOffLine";
++//static const char* PWG_SERVICE_OFF_LINE = "ServiceOffLine";
+ static const char* PWG_RESOURCES_ARE_NOT_READY = "ResourcesAreNotReady";
+ static const char* PWG_JOB_QUEUED = "JobQueued";
+ static const char* PWG_JOB_SCANNING = "JobScanning";
+-static const char* PWG_JOB_SCANNING_AND_TRANSFERRING =
+-  "JobScanningAndTransferring";
++//static const char* PWG_JOB_SCANNING_AND_TRANSFERRING =
++//  "JobScanningAndTransferring";
+ static const char* PWG_JOB_COMPLETED_SUCCESSFULLY = "JobCompletedSuccessfully";
+ static const char* PWG_JOB_CANCELED_BY_USER = "JobCanceledByUser";
+ static const char* PWG_INVALID_SCAN_TICKET = "InvalidScanTicket";
+-- 
+2.33.8
+
