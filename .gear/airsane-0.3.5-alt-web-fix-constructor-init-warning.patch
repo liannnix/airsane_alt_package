@@ -1,0 +1,57 @@
+From ff8de3467301c2f0a46d17ca09c92cbe8dcafa01 Mon Sep 17 00:00:00 2001
+From: Vasiliy Kovalev <kovalev@altlinux.org>
+Date: Fri, 4 Aug 2023 13:46:30 +0300
+Subject: [PATCH 3/6] web: fix constructor init warning
+
+web/webpage.h:179:25: warning: 'WebPage::mpResponse
+' will be initialized after [-Wreorder]
+  179 |   HttpServer::Response* mpResponse;
+      |                         ^~~~~~~~~~
+
+web/webpage.h:178:30: warning:   'const HttpServer:
+:Request* WebPage::mpRequest' [-Wreorder]
+  178 |   const HttpServer::Request* mpRequest;
+      |                              ^~~~~~~~~
+
+web/webpage.cpp:64:1: warning:   when initialized h
+ere [-Wreorder]
+   64 | WebPage::WebPage()
+      | ^~~~~~~
+
+web/webpage.h:178:30: warning: 'WebPage::mpRequest'
+ will be initialized after [-Wreorder]
+  178 |   const HttpServer::Request* mpRequest;
+      |                              ^~~~~~~~~
+
+web/webpage.h:177:17: warning:   'std::ostream* WebPage::mpOut' [-Wreorder]
+  177 |   std::ostream* mpOut;
+      |                 ^~~~~
+
+web/webpage.cpp:64:1: warning:   when initialized here [-Wreorder]
+   64 | WebPage::WebPage()
+      | ^~~~~~~
+
+Signed-off-by: Vasiliy Kovalev <kovalev@altlinux.org>
+---
+ web/webpage.cpp | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/web/webpage.cpp b/web/webpage.cpp
+index 5fe6786..a3f9da9 100644
+--- a/web/webpage.cpp
++++ b/web/webpage.cpp
+@@ -62,9 +62,9 @@ WebPage::numtostr(double d)
+ }
+ 
+ WebPage::WebPage()
+-  : mpResponse(nullptr)
++  : mpOut(nullptr)
+   , mpRequest(nullptr)
+-  , mpOut(nullptr)
++  , mpResponse(nullptr)
+ {
+   addStyle("body { font-family:sans-serif }");
+ }
+-- 
+2.33.8
+
