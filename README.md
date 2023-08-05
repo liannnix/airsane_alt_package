@@ -17,13 +17,13 @@ Authentication and secure communication are supported in conjunction with a
 proxy server such as nginx (see the [https readme file](README.https.md)).
 
 If you are looking for a powerful SANE web frontend, AirSane may not be for you.
-You may be interested in [phpSANE](https://sourceforge.net/projects/phpsane) instead.
+You may be interested in [scanservjs](https://github.com/sbs20/scanservjs) instead.
 
 AirSane has been developed by reverse-engineering the communication protocol
 implemented in Apple's AirScanScanner client
 (macos 10.12.6, `/System/Library/Image Capture/Devices/AirScanScanner.app`).
 
-Regarding the mdns announcement, and the basic working of the eSCL protocol,
+Regarding the mDNS announcement, and the basic working of the eSCL protocol,
 [David Poole's blog](http://testcluster.blogspot.com/2014/03) was very helpful.
 
 In the meantime, the eSCL protocol has been officially published
@@ -41,19 +41,38 @@ ImageKit framework, scanners exported by AirSane should be immediately available
 In the 'Printers and Scanners' control panel, exported scanners will be listed with 
 a type of 'Bonjour Scanner'.
 
+A macOS compatible scanner plugin for the "GIMP" image editing software is provided
+[here](https://github.com/SimulPiscator/GimpScan).
+
 If you define a custom icon for your scanner (see below), note that you will
 have to use the scanner through 'Image Capture' once before it will be
 shown with this icon in 'Printers and Scanners'. This seems to be a bug in macOS
 at least up to Catalina.
 
-### Windows 11
+### Linux
+Install the [sane-airscan backend](https://github.com/alexpevzner/sane-airscan) with
+```
+sudo apt-get install sane-airscan
+```
+or whatever the packet manager of your distribution requires to install it.
+Using `sudo nano /etc/sane.d/dll.conf`, add a line "airscan", and prepend a # character
+before the "escl" entry if present. (There are two airscan backends, called 
+"escl" and "airscan", but only "airscan" is compatible with AirSane.)
+When done, `scanimage -L` should list your AirSane devices, and SANE clients such
+as XSane or simple-scan should be able to scan from them.
+
+### Windows
+eSCL support in Windows has been introduced in Windows 11 first, but is now available
+in Windows 10 as well: <https://support.microsoft.com/en-us/topic/june-28-2022-kb5014666-os-builds-19042-1806-19043-1806-and-19044-1806-preview-4bd911df-f290-4753-bdec-a83bc8709eb6>
+
+#### Connecting to an AirSane scanner
 Go to "Settings"->"Bluetooth & devices"->"Printers and Scanners."
 There, click "Add Device".
 AirSane devices will appear as devices to add, click "Add".
 Wait until the device appears in the list of devices below, click the device,
 and choose "Install app" or "Open scanner" in order to install the Microsoft
 scanner app, or open it if has been installed before.
-Note that Windows 11 does not allow more than 4 scanners per AirSane instance.
+Note that Windows does not allow more than 4 AirSane scanners in total.
 
 ### Mopria client on Android
 As of version 1.4.10, the Mopria Scan App will detect all AirSane scanners and
@@ -61,7 +80,7 @@ display them with name and icon. After choosing scan options, you will be able
 to scan to your android device.
 
 ## Installation
-### Packages for Synology NAS
+### Packages for Synology NAS (DSM6 only)
 Pre-built packages for Synology are available here: 
 <https://search.synopackage.com/sources/pcloadletter>
 
@@ -129,7 +148,7 @@ by editing '/etc/default/airsane'. For options, and their meanings, run
 ```
 airsaned --help
 ```
-By default, the server listens on all local addresses, and on a range of ports beginning at 8090.
+By default, the server listens on all local addresses, and on port 8090.
 From there, each exported scanner has its own port (this is necessary to match the mdns-sd
 specification which allows only a single service to be announced per address/port combination).
 

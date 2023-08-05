@@ -18,11 +18,13 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "server.h"
 
+#include <cstring>
 #include <cmath>
 #include <csignal>
 #include <ctime>
 #include <regex>
 #include <sstream>
+#include <unistd.h>
 
 #include "mainpage.h"
 #include "scannerpage.h"
@@ -38,6 +40,13 @@ extern const char* GIT_REVISION_NUMBER;
 extern const char* BUILD_TIME_STAMP;
 
 namespace {
+
+std::string hostname()
+{
+  char buf[256];
+  ::gethostname(buf, sizeof(buf));
+  return buf;
+}
 
 struct Notifier : HotplugNotifier
 {
@@ -201,16 +210,17 @@ Server::run()
   if (!mDoRun)
     return false;
 
-  struct timespec t = { 0 };
-  ::clock_gettime(CLOCK_MONOTONIC, &t);
-  float t0 = t.tv_sec + 1e-9 * t.tv_nsec;
-
   std::shared_ptr<Notifier> pNotifier;
   if (mHotplug)
     pNotifier = std::make_shared<Notifier>(*this);
 
   bool ok = false, done = false;
   do {
+    struct timespec t = { 0 };
+    ::clock_gettime(CLOCK_MONOTONIC, &t);
+    float t0 = 1.0 * t.tv_sec + 1e-9 * t.tv_nsec;
+    std::clog << "start time is " << t0 << std::endl;
+
     OptionsFile optionsfile(mOptionsfile);
     std::clog << "enumerating " << (mLocalonly ? "local " : " ") << "devices..."
               << std::endl;
@@ -237,7 +247,7 @@ Server::run()
         std::clog << "error: " << pScanner->error() << std::endl;
       }
       else {
-        if (mCompatiblepath && scannerCount++ == 0)
+        if (scannerCount++ == 0 && mCompatiblepath)
             pScanner->setUri("/eSCL");
         else
             pScanner->setUri(pathPrefix + pScanner->uuid());
@@ -245,7 +255,7 @@ Server::run()
         url << "http";
         if (mAnnouncesecure)
           url << "s";
-        url << "://" << mPublisher.hostnameFqdn() << ":" << port()
+        url << "://" << hostname() << ":" << port()
             << pScanner->uri();
         if (mWebinterface)
           pScanner->setAdminUrl(url.str());
@@ -253,7 +263,7 @@ Server::run()
           url << "/ScannerIcon";
           pScanner->setIconUrl(url.str());
         }
-        
+
         std::shared_ptr<MdnsPublisher::Service> pService;
         if (mAnnounce && !pScanner->error()) {
           pService = buildMdnsService(pScanner.get());
@@ -270,8 +280,10 @@ Server::run()
       }
     }
     ::clock_gettime(CLOCK_MONOTONIC, &t);
-    float t1 = t.tv_sec + 1e-9 * t.tv_nsec;
+    float t1 = 1.0 * t.tv_sec + 1e-9 * t.tv_nsec;
+    std::clog << "end time is " << t1 << std::endl;
     mStartupTimeSeconds = t1 - t0;
+    std::clog << "startup took " << mStartupTimeSeconds << " secconds" << std::endl;
 
     ok = HttpServer::run();
     mScanners.clear();
