@@ -12,7 +12,6 @@ VCS: https://github.com/SimulPiscator/AirSane.git
 
 Source: %name-%version.tar
 
-Patch1: %name-0.3.4-alt-strerror-fix.patch
 Patch2: %name-0.3.4-alt-mPort-fix.patch
 Patch3: %name-0.3.4-alt-fix-GCC13-build.patch
 
@@ -44,7 +43,6 @@ for you. You may be interested in phpSANE instead.
 %prep
 %setup
 
-%patch1 -p1
 %patch2 -p1
 %patch3 -p1
 
