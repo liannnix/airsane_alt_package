@@ -1,8 +1,10 @@
 %define _unpackaged_files_terminate_build 1
 
+%define _unmerged_unitdir /lib/systemd/system
+
 Name: airsane
 Version: 0.3.5
-Release: alt1
+Release: alt2
 Summary: A SANE WebScan frontend that supports Apple's AirScan protocol.
 License: GPLv3
 Group: Graphics
@@ -19,6 +21,7 @@ Patch5: %name-0.3.5-alt-server-fix-constructor-init-warning.patch
 Patch6: %name-0.3.5-alt-server-fix-types-warning.patch
 Patch7: %name-0.3.5-alt-server-fix-defined-but-not-used-warning.patch
 
+BuildRequires(pre): rpm-macros-cmake
 BuildRequires: ccmake
 BuildRequires: gcc-c++
 BuildRequires: sane-devel
@@ -69,6 +72,13 @@ sed -i 's|^User=saned|User=_saned|'    $(echo $AIRSANED_SERVICE)
 mkdir -p %buildroot/%_iconsdir/hicolor/512x512/apps
 mv %buildroot/%_sysconfdir/%name/*.png %buildroot/%_iconsdir/hicolor/512x512/apps
 
+# Fixes incorrect behavior of cmake script for airsaned.service file after usrmrg
+if [ ! -e %buildroot%_unitdir/airsaned.service ] &&
+        [ -e %buildroot%_unmerged_unitdir/airsaned.service ]; then
+	mkdir -p %buildroot%_unitdir
+    mv %buildroot%_unmerged_unitdir/airsaned.service %buildroot%_unitdir/
+fi
+
 %post
 %post_service airsaned
 
@@ -85,6 +95,9 @@ mv %buildroot/%_sysconfdir/%name/*.png %buildroot/%_iconsdir/hicolor/512x512/app
 %_iconsdir/hicolor/*
 
 %changelog
+* Mon Jul 22 2024 Anatoly Sinelnikov <tolyasiksin@gmail.com> 0.3.5-alt2
+- Fix build for Sysiphus
+
 * Fri Aug 4 2023 Vasiliy Kovalev <kovalev@altlinux.org> 0.3.5-alt1
 - 0.3.4 -> 0.3.5
 
